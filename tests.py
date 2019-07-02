@@ -1,12 +1,12 @@
 """Tests for Flask Cafe."""
 
 
-# import re
+import re
 from unittest import TestCase
 
-# from flask import session
-from app import app  # , CURR_USER_KEY
-from models import db, Cafe, City  # , User, Like
+from flask import session
+from app import app, CURR_USER_KEY
+from models import db, Cafe, City, User  # Like
 
 # Use test database and don't clutter tests with SQL
 app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql:///flaskcafe-test"
@@ -37,11 +37,11 @@ def debug_html(label, response):
     print("\n\n")
 
 
-# def do_login(client, user_id):
-#     """Log in this user."""
+def do_login(client, user_id):
+    """Log in this user."""
 
-#     with client.session_transaction() as sess:
-#         sess[CURR_USER_KEY] = user_id
+    with client.session_transaction() as sess:
+        sess[CURR_USER_KEY] = user_id
 
 
 #######################################
@@ -63,51 +63,51 @@ CAFE_DATA = dict(
     image_url="http://testcafeimg.com/"
 )
 
-# CAFE_DATA_EDIT = dict(
-#     name="new-name",
-#     description="new-description",
-#     url="http://new-image.com/",
-#     address="500 Sansome St",
-#     city_code="sf",
-#     image_url="http://new-image.com/"
-# )
+CAFE_DATA_EDIT = dict(
+    name="new-name",
+    description="new-description",
+    url="http://new-image.com/",
+    address="500 Sansome St",
+    city_code="sf",
+    image_url="http://new-image.com/"
+)
 
-# TEST_USER_DATA = dict(
-#     username="test",
-#     first_name="Testy",
-#     last_name="MacTest",
-#     description="Test Description.",
-#     email="test@test.com",
-#     password="secret",
-# )
+TEST_USER_DATA = dict(
+    username="test",
+    first_name="Testy",
+    last_name="MacTest",
+    description="Test Description.",
+    email="test@test.com",
+    password="secret",
+)
 
-# TEST_USER_DATA_EDIT = dict(
-#     first_name="new-fn",
-#     last_name="new-ln",
-#     description="new-description",
-#     email="new-email@test.com",
-#     image_url="http://new-image.com",
-# )
+TEST_USER_DATA_EDIT = dict(
+    first_name="new-fn",
+    last_name="new-ln",
+    description="new-description",
+    email="new-email@test.com",
+    image_url="http://new-image.com",
+)
 
-# TEST_USER_DATA_NEW = dict(
-#     username="new-username",
-#     first_name="new-fn",
-#     last_name="new-ln",
-#     description="new-description",
-#     password="secret",
-#     email="new-email@test.com",
-#     image_url="http://new-image.com",
-# )
+TEST_USER_DATA_NEW = dict(
+    username="new-username",
+    first_name="new-fn",
+    last_name="new-ln",
+    description="new-description",
+    password="secret",
+    email="new-email@test.com",
+    image_url="http://new-image.com",
+)
 
-# ADMIN_USER_DATA = dict(
-#     username="admin",
-#     first_name="Addie",
-#     last_name="MacAdmin",
-#     description="Admin Description.",
-#     email="admin@test.com",
-#     password="secret",
-#     admin=True,
-# )
+ADMIN_USER_DATA = dict(
+    username="admin",
+    first_name="Addie",
+    last_name="MacAdmin",
+    description="Admin Description.",
+    email="admin@test.com",
+    password="secret",
+    admin=True,
+)
 
 
 #######################################
@@ -231,183 +231,183 @@ class CafeViewsTestCase(TestCase):
             self.assertIn(b'testcafe.com', resp.data)
 
 
-# class CafeAdminViewsTestCase(TestCase):
-#     """Tests for add/edit views on cafes."""
+class CafeAdminViewsTestCase(TestCase):
+    """Tests for add/edit views on cafes."""
 
-#     def setUp(self):
-#         """Before each test, add sample city, users, and cafes"""
+    def setUp(self):
+        """Before each test, add sample city, users, and cafes"""
 
-#         City.query.delete()
-#         Cafe.query.delete()
+        City.query.delete()
+        Cafe.query.delete()
 
-#         sf = City(**CITY_DATA)
-#         db.session.add(sf)
+        sf = City(**CITY_DATA)
+        db.session.add(sf)
 
-#         cafe = Cafe(**CAFE_DATA)
-#         db.session.add(cafe)
+        cafe = Cafe(**CAFE_DATA)
+        db.session.add(cafe)
 
-#         db.session.commit()
+        db.session.commit()
 
-#         self.cafe_id = cafe.id
+        self.cafe_id = cafe.id
 
-#     def tearDown(self):
-#         """After each test, delete the cities."""
+    def tearDown(self):
+        """After each test, delete the cities."""
 
-#         Cafe.query.delete()
-#         City.query.delete()
-#         db.session.commit()
+        Cafe.query.delete()
+        City.query.delete()
+        db.session.commit()
 
-#     def test_add(self):
-#         with app.test_client() as client:
-#             resp = client.get(f"/cafes/add")
-#             self.assertIn(b'Add Cafe', resp.data)
+    def test_add(self):
+        with app.test_client() as client:
+            resp = client.get(f"/cafes/new")
+            self.assertIn(b'Add Cafe', resp.data)
 
-#             resp = client.post(
-#                 f"/cafes/add",
-#                 data=CAFE_DATA_EDIT,
-#                 follow_redirects=True)
-#             self.assertIn(b'added', resp.data)
+            resp = client.post(
+                f"/cafes/new",
+                data=CAFE_DATA_EDIT,
+                follow_redirects=True)
+            self.assertIn(b'added', resp.data)
 
-#    def test_dynamic_cities_vocab(self):
-#        id = self.cafe_id
+    def test_dynamic_cities_vocab(self):
+        id = self.cafe_id
 
-#        # the following is a regular expression for the HTML for the drop-down
-#        # menu pattern we want to check for
-#        choices_pattern = re.compile(
-#            r'<select [^>]*name="city_code"[^>]*><option [^>]*value="sf">' +
-#            r'San Francisco</option></select>')
+        # the following is a regular expression for the HTML for the drop-down
+        # menu pattern we want to check for
+        choices_pattern = re.compile(
+            r'<select [^>]*name="city_code"[^>]*><option [^>]*value="sf">' +
+            r'San Francisco</option></select>')
 
-#        with app.test_client() as client:
-#            resp = client.get(f"/cafes/add")
-#            self.assertRegex(resp.data.decode('utf8'), choices_pattern)
+        with app.test_client() as client:
+            resp = client.get(f"/cafes/new")
+            self.assertRegex(resp.data.decode('utf8'), choices_pattern)
 
-#            resp = client.get(f"/cafes/{id}/edit")
-#            self.assertRegex(resp.data.decode('utf8'), choices_pattern)
+            resp = client.get(f"/cafes/{id}/edit")
+            self.assertRegex(resp.data.decode('utf8'), choices_pattern)
 
-#     def test_edit(self):
-#         id = self.cafe_id
+    def test_edit(self):
+        id = self.cafe_id
 
-#         with app.test_client() as client:
-#             resp = client.get(f"/cafes/{id}/edit", follow_redirects=True)
-#             self.assertIn(b'Edit Test Cafe', resp.data)
+        with app.test_client() as client:
+            resp = client.get(f"/cafes/{id}/edit", follow_redirects=True)
+            self.assertIn(b'Edit Test Cafe', resp.data)
 
-#             resp = client.post(
-#                 f"/cafes/{id}/edit",
-#                 data=CAFE_DATA_EDIT,
-#                 follow_redirects=True)
-#             self.assertIn(b'edited', resp.data)
+            resp = client.post(
+                f"/cafes/{id}/edit",
+                data=CAFE_DATA_EDIT,
+                follow_redirects=True)
+            self.assertIn(b'edited', resp.data)
 
 
 #######################################
 # users
 
 
-# class UserModelTestCase(TestCase):
-#     """Tests for the user model."""
+class UserModelTestCase(TestCase):
+    """Tests for the user model."""
 
-#     def setUp(self):
-#         """Before each test, add sample users."""
+    def setUp(self):
+        """Before each test, add sample users."""
 
-#         User.query.delete()
+        User.query.delete()
 
-#         user = User.register(**TEST_USER_DATA)
-#         db.session.add(user)
+        user = User.register(**TEST_USER_DATA)
+        db.session.add(user)
 
-#         db.session.commit()
+        db.session.commit()
 
-#         self.user = user
+        self.user = user
 
-#     def tearDown(self):
-#         """After each test, remove all users."""
+    def tearDown(self):
+        """After each test, remove all users."""
 
-#         User.query.delete()
-#         db.session.commit()
+        User.query.delete()
+        db.session.commit()
 
-#     def test_authenticate(self):
-#         rez = User.authenticate("test", "secret")
-#         self.assertEqual(rez, self.user)
+    def test_authenticate(self):
+        rez = User.authenticate("test", "secret")
+        self.assertEqual(rez, self.user)
 
-#     def test_authenticate_fail(self):
-#         rez = User.authenticate("no-such-user", "secret")
-#         self.assertEqual(rez, False)
+    def test_authenticate_fail(self):
+        rez = User.authenticate("no-such-user", "secret")
+        self.assertEqual(rez, False)
 
-#         rez = User.authenticate("test", "password")
-#         self.assertEqual(rez, False)
+        rez = User.authenticate("test", "password")
+        self.assertEqual(rez, False)
 
-#     def test_full_name(self):
-#         self.assertEqual(self.user.get_full_name(), "Testy MacTest")
+    def test_full_name(self):
+        self.assertEqual(self.user.get_full_name(), "Testy MacTest")
 
-#     def test_register(self):
-#         u = User.register(**TEST_USER_DATA)
-#         # test that password gets bcrypt-hashed (all start w/$2b$)
-#         self.assertEqual(u.hashed_password[:4], "$2b$")
-#         db.session.rollback()
+    def test_register(self):
+        u = User.register(**TEST_USER_DATA)
+        # test that password gets bcrypt-hashed (all start w/$2b$)
+        self.assertEqual(u.hashed_password[:4], "$2b$")
+        db.session.rollback()
 
 
-# class AuthViewsTestCase(TestCase):
-#     """Tests for views on logging in/logging out/registration."""
+class AuthViewsTestCase(TestCase):
+    """Tests for views on logging in/logging out/registration."""
 
-#     def setUp(self):
-#         """Before each test, add sample users."""
+    def setUp(self):
+        """Before each test, add sample users."""
 
-#         User.query.delete()
+        User.query.delete()
 
-#         user = User.register(**TEST_USER_DATA)
-#         db.session.add(user)
+        user = User.register(**TEST_USER_DATA)
+        db.session.add(user)
 
-#         db.session.commit()
+        db.session.commit()
 
-#         self.user_id = user.id
+        self.user_id = user.id
 
-#     def tearDown(self):
-#         """After each test, remove all users."""
+    def tearDown(self):
+        """After each test, remove all users."""
 
-#         User.query.delete()
-#         db.session.commit()
+        User.query.delete()
+        db.session.commit()
 
-#     def test_signup(self):
-#         with app.test_client() as client:
-#             resp = client.get("/signup")
-#             self.assertIn(b'Sign Up', resp.data)
+    def test_signup(self):
+        with app.test_client() as client:
+            resp = client.get("/signup")
+            self.assertIn(b'Sign Up', resp.data)
 
-#             resp = client.post(
-#                 "/signup",
-#                 data=TEST_USER_DATA_NEW,
-#                 follow_redirects=True,
-#             )
+            resp = client.post(
+                "/signup",
+                data=TEST_USER_DATA_NEW,
+                follow_redirects=True,
+            )
 
-#             self.assertIn(b"You are signed up and logged in.", resp.data)
-#             self.assertTrue(session.get(CURR_USER_KEY))
+            self.assertIn(b"You are signed up and logged in.", resp.data)
+            self.assertTrue(session.get(CURR_USER_KEY))
 
-#     def test_login(self):
-#         with app.test_client() as client:
-#             resp = client.get("/login")
-#             self.assertIn(b'Welcome Back!', resp.data)
+    def test_login(self):
+        with app.test_client() as client:
+            resp = client.get("/login")
+            self.assertIn(b'Welcome Back!', resp.data)
 
-#             resp = client.post(
-#                 "/login",
-#                 data={"username": "test", "password": "WRONG"},
-#                 follow_redirects=True,
-#             )
+            resp = client.post(
+                "/login",
+                data={"username": "test", "password": "WRONG"},
+                follow_redirects=True,
+            )
 
-#             self.assertIn(b"Invalid credentials", resp.data)
+            self.assertIn(b"Invalid credentials", resp.data)
 
-#             resp = client.post(
-#                 "/login",
-#                 data={"username": "test", "password": "secret"},
-#                 follow_redirects=True,
-#             )
+            resp = client.post(
+                "/login",
+                data={"username": "test", "password": "secret"},
+                follow_redirects=True,
+            )
 
-#             self.assertIn(b"Hello, test", resp.data)
-#             self.assertEqual(session.get(CURR_USER_KEY), self.user_id)
+            self.assertIn(b"Hello, Testy MacTest", resp.data)
+            self.assertEqual(session.get(CURR_USER_KEY), self.user_id)
 
-#     def test_logout(self):
-#         with app.test_client() as client:
-#             do_login(client, self.user_id)
-#             resp = client.post("/logout", follow_redirects=True)
+    def test_logout(self):
+        with app.test_client() as client:
+            do_login(client, self.user_id)
+            resp = client.post("/logout", follow_redirects=True)
 
-#             self.assertIn(b"successfully logged out", resp.data)
-#             self.assertEqual(session.get(CURR_USER_KEY), None)
+            self.assertIn(b"successfully logged out", resp.data)
+            self.assertEqual(session.get(CURR_USER_KEY), None)
 
 
 # class NavBarTestCase(TestCase):
@@ -431,11 +431,11 @@ class CafeViewsTestCase(TestCase):
 #         User.query.delete()
 #         db.session.commit()
 
-#     def test_anon_navbar(self):
-#         # FIXME: add test
+    # def test_anon_navbar(self):
+    #     # FIXME: add test
 
-#     def test_logged_in_navbar(self):
-#         # FIXME: add test
+    # def test_logged_in_navbar(self):
+    #     # FIXME: add test
 
 
 # class ProfileViewsTestCase(TestCase):
