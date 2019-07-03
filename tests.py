@@ -440,48 +440,75 @@ class NavBarTestCase(TestCase):
 
     def test_logged_in_navbar(self):
         with app.test_client() as client:
-            resp = client.post(
-                "/login",
-                data={"username": "test", "password": "secret"},
-                follow_redirects=True,
-            )
+            do_login(client, self.user_id)
+            resp = client.get("/cafes")
             self.assertNotIn(b"Log In", resp.data)
             self.assertNotIn(b"Sign Up", resp.data)
             self.assertIn(b"Log Out", resp.data)
 
 
-# class ProfileViewsTestCase(TestCase):
-#     """Tests for views on user profiles."""
+class ProfileViewsTestCase(TestCase):
+    """Tests for views on user profiles."""
 
-#     def setUp(self):
-#         """Before each test, add sample user."""
+    def setUp(self):
+        """Before each test, add sample user."""
 
-#         User.query.delete()
+        User.query.delete()
 
-#         user = User.register(**TEST_USER_DATA)
-#         db.session.add(user)
+        user = User.register(**TEST_USER_DATA)
+        db.session.add(user)
 
-#         db.session.commit()
+        db.session.commit()
 
-#         self.user_id = user.id
+        self.user_id = user.id
+        self.user = user
 
-#     def tearDown(self):
-#         """After each test, remove all users."""
+    def tearDown(self):
+        """After each test, remove all users."""
 
-#         User.query.delete()
-#         db.session.commit()
+        User.query.delete()
+        db.session.commit()
 
-#     def test_anon_profile(self):
-#         # FIXME: add test
+    def test_anon_profile(self):
+        with app.test_client() as client:
+            resp = client.get("/profile", follow_redirects=True)
+            self.assertIn(b"You are not logged in.", resp.data)
+            self.assertIn(b'<button type="submit">Log in!</button>', resp.data)
 
-#     def test_logged_in_profile(self):
-#         # FIXME: add test
+    def test_logged_in_profile(self):
+        with app.test_client() as client:
+            do_login(client, self.user_id)
+            resp = client.get("/profile")
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn(bytes(
+                self.user.get_full_name(),
+                encoding='utf-8'
+                ), resp.data)
+            self.assertIn(bytes(
+                self.user.description,
+                encoding='utf-8'
+                ), resp.data)
 
-#     def test_anon_profile_edit(self):
-#         # FIXME: add test
+    def test_anon_profile_edit(self):
+        with app.test_client() as client:
+            resp = client.get("/profile/edit", follow_redirects=True)
+            self.assertIn(b"You are not logged in.", resp.data)
+            self.assertIn(b'<button type="submit">Log in!</button>', resp.data)
 
-#     def test_logged_in_profile_edit(self):
-#         # FIXME: add test
+    def test_logged_in_profile_edit(self):
+        with app.test_client() as client:
+            do_login(client, self.user_id)
+            resp = client.get("/profile/edit")
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn(b"Edit User", resp.data)
+            self.assertIn(b'<button type="submit">Edit</button>', resp.data)
+            
+            # check edit form submission
+            resp = client.post(
+                f"/profile/edit",
+                data=TEST_USER_DATA_EDIT,
+                follow_redirects=True)
+            self.assertIn(b'Profile edited.', resp.data)
 
 
 #######################################

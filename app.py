@@ -11,7 +11,7 @@ from sqlalchemy.exc import IntegrityError
 
 from secrets import FLASK_SECRET_KEY
 
-from forms import AddOrEditCafe, SignupForm, LogInForm
+from forms import AddOrEditCafe, SignupForm, LogInForm, ProfileEditForm
 
 
 app = Flask(__name__)
@@ -154,6 +154,9 @@ def edit_cafe(cafe_id):
         return render_template("/cafe/edit-form.html", form=form, cafe=cafe)
 
 
+#######################################
+# Signup, login, and logout
+
 @app.route('/signup', methods=["GET", "POST"])
 def signup_user():
     """Handle form for signing up users. On successful submit,
@@ -224,3 +227,45 @@ def logout():
     do_logout()
     flash("You have successfully logged out.", "success")
     return redirect("/")
+
+
+#######################################
+# profiles
+
+@app.route('/profile')
+def user_details():
+    """send user to login page if not logged in. show profile page"""
+
+    if not g.user:
+        flash(NOT_LOGGED_IN_MSG)
+        return redirect('/login')
+
+    return render_template('/profile/detail.html', user=g.user)
+
+
+@app.route('/profile/edit', methods=["GET", "POST"])
+def edit_user():
+    """Process profile edit. On successful submit, redirects to
+    profile page with flashed message. Or shows form."""
+
+    if not g.user:
+        flash(NOT_LOGGED_IN_MSG)
+        return redirect('/login')
+
+    user = User.query.get(session[CURR_USER_KEY])
+
+    form = ProfileEditForm(obj=user)
+
+    if form.validate_on_submit():
+        user.first_name = form.first_name.data
+        user.last_name = form.last_name.data
+        user.description = form.description.data
+        user.email = form.email.data
+        user.image_url = form.image_url.data
+
+        db.session.commit()
+        flash("Profile edited.", "success")
+        return redirect("/profile")
+
+    else:
+        return render_template("/profile/edit-form.html", form=form)

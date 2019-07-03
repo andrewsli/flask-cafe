@@ -76,3 +76,28 @@ class LogInForm(FlaskForm):
         "Password",
         validators=[InputRequired()]
     )
+
+
+class ProfileEditForm(FlaskForm):
+    """for for editing user information"""
+
+    first_name = StringField(
+        "First name",
+        validators=[InputRequired()]
+    )
+    last_name = StringField(
+        "Last name",
+        validators=[InputRequired()]
+    )
+    description = TextAreaField(
+        "Description",
+        validators=[Optional()]
+    )
+    email = StringField(
+        "Email",
+        validators=[InputRequired(), Email()]
+    )
+    image_url = StringField(
+        "Image URL",
+        validators=[Optional(), URL()]
+    )

@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
 
-{% block title %} Edit Cafe {% endblock %}
+{% block title %} Edit User {% endblock %}
 
 {% block content %}
 
-<h1 class="mb-4">Edit Cafe</h1>
-<form>
+<h1 class="mb-4">Edit User</h1>
+<form method="POST">
     {% include '_form.html' %}
     <button type="submit">Edit</button>
 </form>
