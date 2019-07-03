@@ -32,6 +32,11 @@ class City(db.Model):
         nullable=False,
     )
 
+    @classmethod
+    def cities(cls):
+        """returns a list of tuples of every city in database"""
+        return [(c.code, c.name) for c in City.query.all()]
+
 
 class Cafe(db.Model):
     """Cafe information."""
@@ -110,7 +115,7 @@ class User(db.Model):
 
     email = db.Column(
         db.Text,
-        nullable=True,
+        nullable=False,
     )
 
     first_name = db.Column(
@@ -125,7 +130,7 @@ class User(db.Model):
 
     description = db.Column(
         db.Text,
-        nullable=True,
+        nullable=False,
     )
 
     image_url = db.Column(
@@ -144,7 +149,17 @@ class User(db.Model):
         return f"{self.first_name} {self.last_name}"
 
     @classmethod
-    def register(cls, username, first_name, last_name, description, email, password, admin=False, image_url="/static/images/default-pic.png"):
+    def register(
+        cls,
+        username,
+        first_name,
+        last_name,
+        description,
+        email,
+        password,
+        admin=False,
+        image_url="/static/images/default-pic.png"
+    ):
         """return user with hashed password"""
 
         hashed = bcrypt.generate_password_hash(password)

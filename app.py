@@ -103,24 +103,17 @@ def add_cafe():
 
     form = AddOrEditCafe()
 
-    cities = [(c.code, c.name) for c in City.query.all()]
+    cities = City.cities()
     form.city_code.choices = cities
 
     if form.validate_on_submit():
-        name = form.name.data
-        description = form.description.data
-        url = form.url.data
-        address = form.address.data
-        city_code = form.city_code.data
-        image_url = form.image_url.data
-
         cafe = Cafe(
-            name=name,
-            description=description,
-            url=url,
-            address=address,
-            city_code=city_code,
-            image_url=image_url
+            name=form.name.data,
+            description=form.description.data,
+            url=form.url.data,
+            address=form.address.data,
+            city_code=form.city_code.data,
+            image_url=form.image_url.data
         )
 
         db.session.add(cafe)
@@ -140,7 +133,7 @@ def edit_cafe(cafe_id):
 
     form = AddOrEditCafe()
 
-    cities = [(c.code, c.name) for c in City.query.all()]
+    cities = City.cities()
     form.city_code.choices = cities
 
     cafe = Cafe.query.get(cafe_id)
@@ -226,7 +219,7 @@ def login_user():
 
 @app.route('/logout', methods=["POST"])
 def logout():
-    """logs out user"""
+    """logs out user and redirects them to homepage with flashed message"""
 
     do_logout()
     flash("You have successfully logged out.", "success")
