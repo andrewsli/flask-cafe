@@ -28,4 +28,18 @@
 
 </div>
 
+<div id="liked-cafes">
+  <h3>Liked Cafes:</h3>
+  {% if not user.liked_cafes %}
+    <p>You have no liked cafes.</p>
+  {% else %}
+    <ul>
+      {% for cafe in user.liked_cafes %}
+      <li>
+        <a href="/cafes/{{ cafe.id }}">{{cafe.name}}</a>
+      </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</div>
 {% endblock %}

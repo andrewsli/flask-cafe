@@ -6,7 +6,7 @@ from unittest import TestCase
 
 from flask import session
 from app import app, CURR_USER_KEY
-from models import db, Cafe, City, User  # Like
+from models import db, Cafe, City, User, Like
 
 # Use test database and don't clutter tests with SQL
 app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql:///flaskcafe-test"
@@ -518,4 +518,58 @@ class ProfileViewsTestCase(TestCase):
 class LikeViewsTestCase(TestCase):
     """Tests for views on cafes."""
 
-    # FIXME: add setup/teardown/inidividual tests
+    def setUp(self):
+        """Before each test, add sample city, user, cafe, and like"""
+
+        City.query.delete()
+        User.query.delete()
+        Cafe.query.delete()
+        Like.query.delete()
+
+        city = City(**CITY_DATA)
+        db.session.add(city)
+
+        user = User.register(**TEST_USER_DATA)
+        db.session.add(user)
+
+        cafe = Cafe(**CAFE_DATA)
+        db.session.add(cafe)
+        db.session.commit()
+
+        like = Like(user_id=user.id, cafe_id=cafe.id)
+        db.session.add(like)
+        db.session.commit()
+
+        self.cafe = cafe
+        self.user = user
+        self.like = like
+
+    def tearDown(self):
+        """after each test, remove all cities, users, cafes, and likes"""
+
+        Like.query.delete()
+        User.query.delete()
+        Cafe.query.delete()
+        City.query.delete()
+
+        db.session.commit()
+
+    def test_no_likes(self):
+        with app.test_client() as client:
+            do_login(client, self.user.id)
+
+            Like.query.delete()
+
+            resp = client.get("/profile")
+            self.assertIn(b"You have no liked cafes.", resp.data)
+
+    def test_has_likes(self):
+        with app.test_client() as client:
+            do_login(client, self.user.id)
+            # import pdb; pdb.set_trace()
+            # FOR SOME REASON self.cafe DOESN'T WORK HERE
+            resp = client.get("/profile")
+            self.assertIn(bytes(
+                self.user.liked_cafes.first(),
+                encoding='utf-8'
+            ), resp.data)

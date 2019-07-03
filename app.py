@@ -5,7 +5,7 @@ from flask import Flask, render_template, request, flash
 from flask import redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 
-from models import db, connect_db, Cafe, City, User
+from models import db, connect_db, Cafe, City, User, Like
 
 from sqlalchemy.exc import IntegrityError
 
