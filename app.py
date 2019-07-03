@@ -131,12 +131,12 @@ def edit_cafe(cafe_id):
     on successful submit or renders form
     """
 
-    form = AddOrEditCafe()
+    cafe = Cafe.query.get(cafe_id)
+
+    form = AddOrEditCafe(obj=cafe)
 
     cities = City.cities()
     form.city_code.choices = cities
-
-    cafe = Cafe.query.get(cafe_id)
 
     if form.validate_on_submit():
         cafe.name = form.name.data
