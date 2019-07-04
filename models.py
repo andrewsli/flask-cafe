@@ -158,6 +158,14 @@ class User(db.Model):
         """returns 'first_name last_name'"""
         return f"{self.first_name} {self.last_name}"
 
+    def likes_cafe(self, cafe_id):
+        """returns T/F if user likes/doesn't like the cafe"""
+        for cafe in self.liked_cafes:
+            if cafe.id == cafe_id:
+                return True
+        return False
+        # return any(cafe.id == cafe_id for cafe in self.liked_cafes:)
+
     @classmethod
     def register(
         cls,

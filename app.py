@@ -1,7 +1,7 @@
 """Flask App for Flask Cafe."""
 
 
-from flask import Flask, render_template, request, flash
+from flask import Flask, render_template, request, flash, jsonify
 from flask import redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 
@@ -269,3 +269,52 @@ def edit_user():
 
     else:
         return render_template("/profile/edit-form.html", form=form)
+
+
+#######################################
+# likes API
+
+@app.route('/api/likes')
+def user_likes_cafe():
+    """expects query with cafe_id, returns JSON {"likes": True/False} depending
+    on whether the user has liked the cafe"""
+
+    cafe_id = int(request.args["cafe_id"])
+
+    if not g.user:
+        return jsonify({"error": "Not logged in"})
+
+    return jsonify({
+        "likes": g.user.likes_cafe(cafe_id),
+        })
+
+
+@app.route('/api/like', methods=["POST"])
+def like_cafe():
+    """adds like with current user id and posted cafe id
+    """
+    cafe_id = int(request.json["cafe_id"])
+
+    if not g.user:
+        return jsonify({"error": "Not logged in"})
+
+    like = Like(user_id=g.user.id, cafe_id=cafe_id)
+
+    db.session.add(like)
+    db.session.commit()
+
+    return jsonify({"liked": cafe_id})
+
+
+@app.route('/api/unlike', methods=["POST"])
+def unlike_cafe():
+    """removes like with current user id and posted cafe id"""
+    cafe_id = int(request.json["cafe_id"])
+
+    if not g.user:
+        return jsonify({"error": "Not logged in"})
+    like = Like.query.filter_by(user_id=g.user.id, cafe_id=cafe_id).first()
+    db.session.delete(like)
+    db.session.commit()
+
+    return jsonify({"unliked": cafe_id})

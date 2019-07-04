@@ -8,12 +8,24 @@
 
   <div class="col-10 col-sm-8 col-md-4 col-lg-3">
     <img class="img-fluid mb-5" src="{{ cafe.image_url }}">
+    <div>
+    {% if g.user %}
+      <form class="form-inline">
+        <button type="submit" class="d-none btn-sm btn btn-primary" id="like">
+          Like
+        </button>
+        <button type="submit" class="d-none btn-sm btn btn-primary" id="unlike">
+          Unlike
+        </button>
+      </form>
+    {% endif %}
+    </div>
   </div>
 
   <div class="col-12 col-sm-10 col-md-8">
 
     <h1>{{ cafe.name }}</h1>
-
+  
     <p class="lead">{{ cafe.description }}</p>
 
     <p><a href="{{ cafe.url }}">{{ cafe.url }}</a></p>
@@ -31,4 +43,7 @@
 
   </div>
 
+  <script type="text/javascript"> 
+    var cafe_id = parseInt("{{ cafe.id }}");
+  </script>
   {% endblock %}

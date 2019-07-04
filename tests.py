@@ -7,6 +7,7 @@ from unittest import TestCase
 from flask import session
 from app import app, CURR_USER_KEY
 from models import db, Cafe, City, User, Like
+import json
 
 # Use test database and don't clutter tests with SQL
 app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql:///flaskcafe-test"
@@ -540,7 +541,9 @@ class LikeViewsTestCase(TestCase):
         db.session.add(like)
         db.session.commit()
 
-        self.cafe = cafe
+        self.cafe_name = cafe.name
+        self.cafe_id = cafe.id
+        # self.cafe = cafe
         self.user = user
         self.like = like
 
@@ -557,9 +560,7 @@ class LikeViewsTestCase(TestCase):
     def test_no_likes(self):
         with app.test_client() as client:
             do_login(client, self.user.id)
-
             Like.query.delete()
-
             resp = client.get("/profile")
             self.assertIn(b"You have no liked cafes.", resp.data)
 
@@ -570,6 +571,74 @@ class LikeViewsTestCase(TestCase):
             # FOR SOME REASON self.cafe DOESN'T WORK HERE
             resp = client.get("/profile")
             self.assertIn(bytes(
-                self.user.liked_cafes.first(),
+                self.cafe_name,
                 encoding='utf-8'
             ), resp.data)
+
+    def test_user_likes_cafe_false(self):
+        with app.test_client() as client:
+            do_login(client, self.user.id)
+            Like.query.delete()
+            resp = client.get(f"/api/likes?cafe_id={self.cafe_id}")
+            self.assertIn(b'"likes": false', resp.data)
+
+    def test_user_likes_cafe_true(self):
+        with app.test_client() as client:
+            do_login(client, self.user.id)
+            resp = client.get(f"/api/likes?cafe_id={self.cafe_id}")
+            self.assertIn(b'"likes": true', resp.data)
+
+    def test_like_cafe(self):
+        # delete all likes, post a like, check response and table
+        with app.test_client() as client:
+            # test not logged in response
+            resp = client.post(
+                f"/api/like",
+                data=json.dumps({"cafe_id": self.cafe_id}),
+                content_type='application/json'
+            )
+            self.assertIn(b'"Not logged in"', resp.data)
+
+            do_login(client, self.user.id)
+            Like.query.delete()
+
+            resp = client.post(
+                f"/api/like",
+                data=json.dumps({"cafe_id": self.cafe_id}),
+                content_type='application/json'
+            )
+            # check response and make sure like is in db
+            self.assertIn(bytes(
+                f'"liked": {self.cafe_id}',
+                encoding='utf-8'
+            ), resp.data)
+            self.assertTrue(Like.query.first())
+
+    def test_unlike_cafe(self):
+        with app.test_client() as client:
+            # test not logged in response
+            resp = client.post(
+                f"/api/unlike",
+                data=json.dumps({"cafe_id": self.cafe_id}),
+                content_type='application/json'
+            )
+            self.assertIn(b'"Not logged in"', resp.data)
+
+            do_login(client, self.user.id)
+
+            resp = client.post(
+                f"/api/unlike",
+                data=json.dumps({"cafe_id": self.cafe_id}),
+                content_type='application/json'
+            )
+
+            # test response and make sure like is not in db
+            self.assertIn(bytes(
+                f'"unliked": {self.cafe_id}',
+                encoding='utf-8'
+            ), resp.data)
+            self.assertFalse(
+                Like.query.filter_by(
+                    user_id=self.user.id,
+                    cafe_id=self.cafe_id
+                    ).first())
